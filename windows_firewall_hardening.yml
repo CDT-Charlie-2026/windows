@@ -1,0 +1,137 @@
+---
+- name: Hardening Windows Firewalls - Manual Strategy Automation
+  hosts: windows_servers
+  gather_facts: true
+
+  tasks:
+    # =========================================================================
+    # STEP 1: UNIVERSAL BASELINE CONFIGURATIONS (ALL WINDOWS NODES)
+    # =========================================================================
+
+    - name: Baseline - Open Management Access (RDP & WinRM) Globally
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - Baseline - {{ item.name }}"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: TCP
+        localport: "{{ item.port }}"
+        profiles: [domain, private, public]
+        state: present
+      loop:
+        - { name: "WinRM HTTP", port: 5985 }
+        - { name: "WinRM HTTPS", port: 5986 }
+        - { name: "RDP Administration", port: 3389 }
+
+    - name: Baseline - Ensure Scoring Bot ICMP Pings Pass Natively
+      ansible.windows.win_powershell:
+        script: |
+          Enable-NetFirewallRule -DisplayGroup "Core Networking" -ErrorAction SilentlyContinue
+          Enable-NetFirewallRule -DisplayName "File and Printer Sharing (Echo Request - ICMPv4-In)" -ErrorAction SilentlyContinue
+      changed_when: false
+
+    # =========================================================================
+    # STEP 2: AUDIT & CLEAN OUT DEFAULT WINDOWS RISKS
+    # =========================================================================
+
+    - name: Security - Disable Pre-Existing Risky Default Windows Rules
+      ansible.windows.win_powershell:
+        script: |
+          # Disable default broad rules often abused by Red Teams for persistence
+          $RulesToDisable = @(
+              "Remote Assistance*",
+              "Windows Virtual Desktop*",
+              "Xbox*",
+              "BranchCache*"
+          )
+          foreach ($Rule in $RulesToDisable) {
+              Disable-NetFirewallRule -Name $Rule -ErrorAction SilentlyContinue
+          }
+      changed_when: false
+
+    # =========================================================================
+    # STEP 3: TARGET-SPECIFIC ROLE ISOLATION
+    # =========================================================================
+
+    # --- 1. Coruscant (Active Directory & DNS) ---
+    - name: Role Isolation - Configure Coruscant (AD/DNS) Services
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - AD_DNS - {{ item.name }}"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: "{{ item.protocol }}"
+        localport: "{{ item.port }}"
+        profiles: [domain, private, public]
+        state: present
+      loop:
+        - { name: "DNS UDP", protocol: "UDP", port: 53 }
+        - { name: "DNS TCP", protocol: "TCP", port: 53 }
+        - { name: "Kerberos TCP", protocol: "TCP", port: 88 }
+        - { name: "Kerberos UDP", protocol: "UDP", port: 88 }
+        - { name: "NTP Time Sync", protocol: "UDP", port: 123 }
+        - { name: "RPC Endpoint Mapper", protocol: "TCP", port: 135 }
+        - { name: "LDAP Standard", protocol: "TCP", port: 389 }
+        - { name: "LDAP SSL", protocol: "TCP", port: 636 }
+        - { name: "SMB AD Replication", protocol: "TCP", port: 445 }
+        - { name: "RPC Ephemeral Range", protocol: "TCP", port: "49152-65535" }
+      when: inventory_hostname | lower == 'coruscant'
+
+    # --- 2. Naboo (IIS Web Server) ---
+    - name: Role Isolation - Configure Naboo (IIS Web Server) Services
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - Web - {{ item.name }}"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: "TCP"
+        localport: "{{ item.port }}"
+        profiles: [domain, private, public]
+        state: present
+      loop:
+        - { name: "HTTP", port: 80 }
+        - { name: "HTTPS", port: 443 }
+      when: inventory_hostname | lower == 'naboo'
+
+    # --- 3. Kamino (Certificate Authority) ---
+    - name: Role Isolation - Configure Kamino (Certificate Authority) Services
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - CA - {{ item.name }}"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: "TCP"
+        localport: "{{ item.port }}"
+        profiles: [domain, private, public]
+        state: present
+      loop:
+        - { name: "RPC Endpoint Mapper", port: 135 }
+        - { name: "Web Enrollment HTTPS", port: 443 }
+        - { name: "DCOM RPC Ephemeral Range", port: "49152-65535" }
+      when: inventory_hostname | lower == 'kamino'
+
+    # --- 4. Felucia (SMB File Server) ---
+    - name: Role Isolation - Configure Felucia (SMB File Server) Services
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - FileServer - SMB"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: "TCP"
+        localport: 445
+        profiles: [domain, private, public]
+        state: present
+      when: inventory_hostname | lower == 'felucia'
+
+    # --- 5. Alderaan (MSSQL Database Server) ---
+    - name: Role Isolation - Configure Alderaan (MSSQL Database) Services
+      ansible.windows.win_firewall_rule:
+        name: "BlueTeam - Database - MSSQL"
+        direction: in
+        action: allow
+        enabled: true
+        protocol: "TCP"
+        localport: 1433
+        profiles: [domain, private, public]
+        state: present
+      when: inventory_hostname | lower == 'alderaan'
