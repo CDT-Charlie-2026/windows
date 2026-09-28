@@ -13,12 +13,16 @@ param(
 $excludedLocalUsers = @(
     "Guest",
     "DefaultAccount",
-    "WDAGUtilityAccount"
+    "WDAGUtilityAccount",
+    "realgreyteam",
+    "dontdeletegreyteam"
 )
 
 $excludedDomainUsers = @(
     "notgreyteam",
-    "krbtgt"
+    "krbtgt",
+    "realgreyteam",
+    "dontdeletegreyteam"
 )
 
 if (-not $Users -and -not $Exclude) {
