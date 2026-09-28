@@ -2,7 +2,7 @@
 #   .\PasswordReset.ps1 -Users alice,bob            only change these users
 #   .\PasswordReset.ps1 -Exclude blueadmin          change everyone except these (and the hardcoded lists)
 #   .\PasswordReset.ps1 -Exclude blueadmin -Domain  same, but for domain users
-Import-Module ActiveDirectory
+# Import-Module ActiveDirectory needed for -Domain arg
 
 param(
     [string[]] $Users,
