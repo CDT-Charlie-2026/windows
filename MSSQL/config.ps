@@ -1,0 +1,21 @@
+# config.ps1
+
+# --- Accounts ---
+$ScoringAccount = "CHANGEME_scoring_user"
+$NewSaPassword = "CHANGEME_StrongPassword123!"
+
+$KnownSysadminLogins = @(
+    "sa"
+    # "CHANGEME_domain\CHANGEME_admin"
+)
+
+$MSSQLPort = 1433
+
+$AllowedSourceIPs = @(
+    "CHANGEME_scorebot_ip"
+    # "CHANGEME_gray_team_ip"
+)
+
+$BackupDir = "C:\CompBackups"
+
+$DisableXpCmdshell = $true
